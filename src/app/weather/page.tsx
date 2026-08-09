@@ -13,27 +13,57 @@ export default function Weather() {
 
   useEffect(() => {
     let mounted = true;
+    const weatherCacheKey = `weatherData_${location}`;
+    const recsCacheKey = `weatherRecs_${location}_${language}`;
+    
+    const cachedWeather = sessionStorage.getItem(weatherCacheKey);
+    const cachedRecs = sessionStorage.getItem(recsCacheKey);
+
+    if (cachedWeather) {
+      try {
+        const parsedWeather = JSON.parse(cachedWeather);
+        setData(parsedWeather);
+        setLoading(false);
+        
+        if (cachedRecs) {
+          setRecommendations(JSON.parse(cachedRecs));
+        } else if (parsedWeather) {
+          fetchRecs(parsedWeather, recsCacheKey);
+        }
+        return;
+      } catch (e) {}
+    }
+
     setLoading(true);
     fetchWeather(location).then((res) => {
       if (mounted) {
         setData(res);
         setLoading(false);
         if (res) {
-          setLoadingRecs(true);
-          fetch('/api/weather-crops', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location, weather: res, language })
-          })
-          .then(r => r.json())
-          .then(d => {
-            if (mounted && d.recommendations) setRecommendations(d.recommendations);
-            setLoadingRecs(false);
-          })
-          .catch(() => setLoadingRecs(false));
+          sessionStorage.setItem(weatherCacheKey, JSON.stringify(res));
+          fetchRecs(res, recsCacheKey);
         }
       }
     });
+
+    function fetchRecs(weatherData: any, cacheKey: string) {
+      setLoadingRecs(true);
+      fetch('/api/weather-crops', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location, weather: weatherData, language })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (mounted && d.recommendations) {
+          setRecommendations(d.recommendations);
+          sessionStorage.setItem(cacheKey, JSON.stringify(d.recommendations));
+        }
+        setLoadingRecs(false);
+      })
+      .catch(() => setLoadingRecs(false));
+    }
+
     return () => { mounted = false; };
   }, [location, language]);
 

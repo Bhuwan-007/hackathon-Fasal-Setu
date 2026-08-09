@@ -84,7 +84,7 @@ export default function Advisory() {
               : 'अपने क्षेत्र के लिए हाइपर-लोकल फसल और बिक्री की सलाह मांगें।'}
           </p>
           
-          <div className="w-full max-w-[220px] mb-6 flex flex-col gap-3">
+          <div className="w-full max-w-[220px] mb-4 flex flex-col gap-3">
             <select 
               className="w-full bg-emerald-600/90 text-white border-2 border-emerald-400 rounded-tl-3xl rounded-br-3xl rounded-tr-sm rounded-bl-sm px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-emerald-300 shadow-lg appearance-none cursor-pointer leaf-trigger text-center"
               value={prices.find((p: any) => p.id === selectedCrop) ? selectedCrop : ''}
@@ -104,6 +104,20 @@ export default function Advisory() {
               onChange={(e) => setSelectedCrop(e.target.value)}
             />
           </div>
+
+          {prices.find((p: any) => p.id === selectedCrop) && (
+            <div className="w-full max-w-xs mb-5 p-3 bg-amber-100/80 rounded-xl text-left border border-amber-300 shadow-sm">
+              <h3 className="text-[10px] font-black uppercase text-amber-800 mb-1">
+                {language === 'en' ? 'Quick Sell Target' : 'त्वरित बिक्री लक्ष्य'}
+              </h3>
+              <p className="text-xs font-bold text-amber-900 leading-snug">
+                {language === 'en' 
+                  ? `Today's Price: ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ}/q. Ask for at least ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ + 50} at the Mandi.`
+                  : `आज का भाव: ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ}/क्विंटल। मंडी में कम से कम ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ + 50} की मांग करें।`
+                }
+              </p>
+            </div>
+          )}
 
           <button 
             type="button"

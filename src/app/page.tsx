@@ -13,6 +13,15 @@ export default function Home() {
 
   useEffect(() => {
     let mounted = true;
+    const cacheKey = `homeAdvisories_${location}_${language}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    
+    if (cached) {
+      setTips(JSON.parse(cached));
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     fetch('/api/home-advisories', {
       method: 'POST',
@@ -21,7 +30,10 @@ export default function Home() {
     })
       .then(res => res.json())
       .then(data => {
-        if (mounted && data.tips) setTips(data.tips);
+        if (mounted && data.tips) {
+          setTips(data.tips);
+          sessionStorage.setItem(cacheKey, JSON.stringify(data.tips));
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
