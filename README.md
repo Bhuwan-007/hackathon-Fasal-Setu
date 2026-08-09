@@ -37,8 +37,3 @@ The application follows a resilient **AI-First, Mock-Fallback** architectural pa
 
 ### 4. Telemetry Integration
 * **Weather Data:** Open-Meteo API (Latitude/Longitude based 14-day forecasting and historical analysis).
-
----
-<div align="center">
-  <p>Built for the Fasal-Setu Hackathon.</p>
-</div>
