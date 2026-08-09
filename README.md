@@ -1,12 +1,11 @@
 <div align="center">
-  <img src="https://unpkg.com/lucide-static@0.321.0/icons/leaf.svg" width="60" alt="Fasal-Setu Logo" />
   <h1>Fasal-Setu</h1>
   <p><strong>Traceability Copilot - Atmospheric Edition</strong></p>
 </div>
 
 <br/>
 
-## <img src="https://unpkg.com/lucide-static@0.321.0/icons/target.svg" width="20" align="top" /> The Importance
+## The Importance
 
 Indian agriculture is highly susceptible to climate volatility, leaving millions of farmers vulnerable to sudden weather shifts and unpredictable market prices. 
 
@@ -14,7 +13,7 @@ Indian agriculture is highly susceptible to climate volatility, leaving millions
 
 ---
 
-## <img src="https://unpkg.com/lucide-static@0.321.0/icons/layers.svg" width="20" align="top" /> System Architecture
+## System Architecture
 
 The application follows a resilient **AI-First, Mock-Fallback** architectural pattern designed for maximum uptime and speed.
 
@@ -25,7 +24,7 @@ The application follows a resilient **AI-First, Mock-Fallback** architectural pa
 * **Caching:** Heavy utilization of `sessionStorage` and `localStorage` to aggressively cache API responses (weather, market prices, AI advisories) to prevent redundant network requests and provide instant tab-switching.
 
 ### 2. Backend / API Layer
-* **Runtime:** Next.js Serverless Route Handlers.
+* **Runtime:** Next.js Serverless Route Handlers (Vercel Edge/Node compatible).
 * **Resilience:** Every route implements a strict `try/catch` fallback mechanism. If an external API fails or rate-limits, the system instantly falls back to highly accurate, localized mock datasets.
 
 ### 3. Intelligence Engine (AI)
@@ -38,33 +37,6 @@ The application follows a resilient **AI-First, Mock-Fallback** architectural pa
 
 ### 4. Telemetry Integration
 * **Weather Data:** Open-Meteo API (Latitude/Longitude based 14-day forecasting and historical analysis).
-
----
-
-## <img src="https://unpkg.com/lucide-static@0.321.0/icons/rocket.svg" width="20" align="top" /> Getting Started
-
-### Prerequisites
-* Node.js 18+
-* A Groq API Key for the Llama 3.1 integration
-
-### Installation
-
-1. Clone the repository and install dependencies:
-```bash
-npm install
-```
-
-2. Create a `.env.local` file in the root directory and add your API key:
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-3. Start the Turbopack development server:
-```bash
-npm run dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 ---
 <div align="center">
