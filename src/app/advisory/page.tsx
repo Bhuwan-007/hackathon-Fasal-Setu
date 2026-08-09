@@ -6,9 +6,11 @@ import { MessageSquareQuote, Bot, Loader2, Sprout, BadgeIndianRupee, History } f
 
 export default function Advisory() {
   const { language, location } = useAppContext();
-  const prices = cropPrices[location] || [];
+  const prices = cropPrices[location] || cropPrices['Default'] || [];
   
   const [selectedCrop, setSelectedCrop] = useState<string>('');
+  const selectedCropData = prices.find((p: any) => p.id === selectedCrop);
+  
   const [loading, setLoading] = useState(false);
   const [advisory, setAdvisory] = useState<{plantAdvice: string, sellAdvice: string} | null>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -105,20 +107,6 @@ export default function Advisory() {
             />
           </div>
 
-          {prices.find((p: any) => p.id === selectedCrop) && (
-            <div className="w-full max-w-xs mb-5 p-3 bg-amber-100/80 rounded-xl text-left border border-amber-300 shadow-sm">
-              <h3 className="text-[10px] font-black uppercase text-amber-800 mb-1">
-                {language === 'en' ? 'Quick Sell Target' : 'त्वरित बिक्री लक्ष्य'}
-              </h3>
-              <p className="text-xs font-bold text-amber-900 leading-snug">
-                {language === 'en' 
-                  ? `Today's Price: ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ}/q. Ask for at least ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ + 50} at the Mandi.`
-                  : `आज का भाव: ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ}/क्विंटल। मंडी में कम से कम ₹${prices.find((p: any) => p.id === selectedCrop).pricePerQ + 50} की मांग करें।`
-                }
-              </p>
-            </div>
-          )}
-
           <button 
             type="button"
             onClick={handleAskAI}
@@ -128,6 +116,38 @@ export default function Advisory() {
             {language === 'en' ? 'Generate Advisory' : 'सलाह प्राप्त करें'}
           </button>
         </div>
+      )}
+
+      {!advisory && !loading && (
+        <>
+          {selectedCropData ? (
+            <div className="sky-glass-card p-4 mx-auto max-w-sm w-full bg-amber-50/50 border-t-4 border-t-amber-400 border-x-0 border-b-0 shadow-md">
+              <h3 className="text-xs font-black uppercase text-amber-800 mb-1">
+                {language === 'en' ? 'Quick Sell Target' : 'त्वरित बिक्री लक्ष्य'}
+              </h3>
+              <p className="text-sm font-bold text-amber-900 leading-snug">
+                {language === 'en' 
+                  ? `Today's Price: ₹${selectedCropData.pricePerQ}/q. Ask for at least ₹${selectedCropData.pricePerQ + 50} at the Mandi.`
+                  : `आज का भाव: ₹${selectedCropData.pricePerQ}/क्विंटल। मंडी में कम से कम ₹${selectedCropData.pricePerQ + 50} की मांग करें।`
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="sky-glass-card p-4 mx-auto max-w-sm w-full bg-white/40 border-t-4 border-t-violet-400 border-x-0 border-b-0 shadow-md">
+              <h3 className="text-[10px] font-black uppercase text-violet-800 mb-2 border-b border-violet-200 pb-1">
+                {language === 'en' ? 'Latest Selling Price' : 'नवीनतम बिक्री मूल्य'}
+              </h3>
+              <div className="flex flex-col gap-2">
+                {prices.slice(0, 4).map((p: any) => (
+                  <div key={p.id} className="flex justify-between items-center text-sm font-bold text-slate-700">
+                    <span>{language === 'en' ? p.nameEn : p.nameHi}</span>
+                    <span className="text-emerald-700">₹{p.pricePerQ}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {loading && (
