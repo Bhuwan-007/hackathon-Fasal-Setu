@@ -43,18 +43,18 @@ OUTPUT FORMAT (Return valid JSON with two fields ONLY):
 }
 `;
 
+    const mockResponse = {
+      plantAdvice: language === 'en' 
+        ? "Based on the upcoming sunny weather and high market demand, consider planting Tomato or Soybean."
+        : "आगामी धूप वाले मौसम और बाजार की उच्च मांग को देखते हुए, टमाटर या सोयाबीन बोने पर विचार करें।",
+      sellAdvice: language === 'en'
+        ? `Today's price for ${crop || 'your crop'} is solid. The trend is upward. Ask for at least ₹2,200 per quintal.`
+        : `आपकी फसल का आज का भाव मजबूत है। कम से कम ₹2,200 प्रति क्विंटल की मांग करें।`
+    };
+
     const apiKey = process.env.GROQ_API_KEY;
-    
     if (!apiKey) {
-      console.log('No GROQ_API_KEY found, returning mock response.');
-      return NextResponse.json({
-        plantAdvice: language === 'en' 
-          ? "Based on the upcoming sunny weather and high market demand, consider planting Tomato or Soybean."
-          : "आगामी धूप वाले मौसम और बाजार की उच्च मांग को देखते हुए, टमाटर या सोयाबीन बोने पर विचार करें।",
-        sellAdvice: language === 'en'
-          ? `Today's price for ${crop || 'your crop'} is solid. The trend is upward. Ask for at least ₹2,200 per quintal.`
-          : `आपकी फसल का आज का भाव मजबूत है। कम से कम ₹2,200 प्रति क्विंटल की मांग करें।`
-      });
+      return NextResponse.json(mockResponse);
     }
 
     const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
@@ -64,21 +64,31 @@ OUTPUT FORMAT (Return valid JSON with two fields ONLY):
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" }
       })
     });
 
     const data = await response.json();
-    const resultText = data.choices?.[0]?.message?.content;
-    
-    if (resultText) {
-      const parsed = JSON.parse(resultText);
-      return NextResponse.json(parsed);
+    if (!response.ok) {
+      console.error('Groq API Error:', data);
+      return NextResponse.json(mockResponse); // Fallback on error
     }
 
-    return NextResponse.json({ error: 'Failed to generate advisory' }, { status: 500 });
+    const resultText = data.choices?.[0]?.message?.content;
+    if (resultText) {
+      try {
+        const cleaned = resultText.replace(/```json/g, '').replace(/```/g, '');
+        const parsed = JSON.parse(cleaned);
+        return NextResponse.json(parsed);
+      } catch (e) {
+        console.error('JSON Parse Error:', e);
+        return NextResponse.json(mockResponse);
+      }
+    }
+
+    return NextResponse.json(mockResponse);
   } catch (error) {
     console.error('Advisory API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

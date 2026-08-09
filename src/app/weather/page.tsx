@@ -8,6 +8,8 @@ export default function Weather() {
   const { language, location } = useAppContext();
   const [data, setData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<{crop: string, reason: string}[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -16,10 +18,24 @@ export default function Weather() {
       if (mounted) {
         setData(res);
         setLoading(false);
+        if (res) {
+          setLoadingRecs(true);
+          fetch('/api/weather-crops', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location, weather: res, language })
+          })
+          .then(r => r.json())
+          .then(d => {
+            if (mounted && d.recommendations) setRecommendations(d.recommendations);
+            setLoadingRecs(false);
+          })
+          .catch(() => setLoadingRecs(false));
+        }
       }
     });
     return () => { mounted = false; };
-  }, [location]);
+  }, [location, language]);
 
   return (
     <div className="flex flex-col gap-5 animate-in fade-in duration-500">
@@ -77,6 +93,26 @@ export default function Weather() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="space-y-3 mt-2">
+            <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+              {language === 'en' ? 'AI Weather Crops' : 'मौसम आधारित फसलें'}
+            </h2>
+            {loadingRecs ? (
+              <div className="sky-glass-card p-4 flex justify-center items-center">
+                <Loader2 className="animate-spin text-sky-500" size={20} />
+              </div>
+            ) : recommendations.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {recommendations.map((rec, idx) => (
+                  <div key={idx} className="sky-glass-card p-4 border-l-2 border-emerald-400 shadow-sm">
+                    <h3 className="font-black text-slate-800 text-sm">{rec.crop}</h3>
+                    <p className="text-xs text-slate-600 font-bold mt-1 leading-snug">{rec.reason}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         </>
       ) : (

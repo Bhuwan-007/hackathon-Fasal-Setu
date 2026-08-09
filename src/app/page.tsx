@@ -1,12 +1,32 @@
 "use client";
 import { useAppContext } from "@/context/AppProvider";
 import { cropPrices } from "@/data/mockData";
-import { ArrowRight, Leaf } from "lucide-react";
+import { ArrowRight, Leaf, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { language, location } = useAppContext();
   const topCrop = cropPrices[location]?.[0];
+  const [tips, setTips] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    fetch('/api/home-advisories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ location, language })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (mounted && data.tips) setTips(data.tips);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+    return () => { mounted = false; };
+  }, [location, language]);
   
   return (
     <div className="flex flex-col gap-5 animate-in fade-in duration-500">
@@ -27,18 +47,28 @@ export default function Home() {
         </div>
       </div>
       
-      {/* Today's Tip Card */}
-      <div className="sky-glass-card p-6 relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/50">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400 opacity-20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-          {language === 'en' ? 'Today\'s Advisory' : 'आज की सलाह'}
+      {/* Today's Tip Cards */}
+      <div className="flex flex-col gap-3">
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">
+          {language === 'en' ? 'Smart Advisories' : 'स्मार्ट सलाह'}
         </p>
-        <p className="font-extrabold text-[1.05rem] leading-snug text-slate-800 relative z-10">
-          {language === 'en' 
-            ? 'Optimal soil moisture detected in your region for early sowing.' 
-            : 'आपके क्षेत्र में जल्दी बुवाई के लिए मिट्टी की नमी का स्तर अनुकूल है।'}
-        </p>
+        
+        {loading ? (
+           <div className="sky-glass-card p-6 flex justify-center items-center">
+             <Loader2 className="animate-spin text-amber-500" size={24} />
+           </div>
+        ) : tips.map((tip, idx) => (
+          <div key={idx} className="sky-glass-card p-5 relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/50 hover:-translate-y-0.5 transition-transform">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400 opacity-20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+            <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span>
+              {language === 'en' ? `Insight ${idx + 1}` : `सुझाव ${idx + 1}`}
+            </p>
+            <p className="font-extrabold text-[0.95rem] leading-snug text-slate-800 relative z-10">
+              {tip}
+            </p>
+          </div>
+        ))}
       </div>
       
       {/* Quick Stats Grid */}

@@ -37,4 +37,15 @@
     color: #f8fafc;
     border-radius: 1.5rem;
   }
+
+  .stem-s {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%2392400e'/%3E%3Cpath d='M5 0 Q10 20 5 40 M15 0 Q12 20 18 40 M25 0 Q20 20 28 40 M35 0 Q32 20 38 40 M0 10 Q20 12 40 8 M0 25 Q20 30 40 22' stroke='%23451a03' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-family: 'Times New Roman', serif;
+    font-weight: 900;
+    display: inline-block;
+    transform: scaleY(1.1) skewX(-2deg);
+  }
 }

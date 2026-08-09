@@ -1,20 +1,52 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppProvider";
 import { cropPrices } from "@/data/mockData";
-import { TrendingUp, TrendingDown, Minus, Flame, IndianRupee, Search } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Flame, IndianRupee, Search, Loader2 } from "lucide-react";
 import clsx from "clsx";
 
 export default function Prices() {
   const { language, location } = useAppContext();
-  const prices = cropPrices[location] || [];
+  const initialPrices = cropPrices[location] || [];
+  const [pricesState, setPricesState] = useState<any[]>(initialPrices);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   
-  const filteredPrices = prices.filter(p => 
+  useEffect(() => {
+    setPricesState(cropPrices[location] || []);
+  }, [location]);
+  
+  const filteredPrices = pricesState.filter(p => 
     p.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.nameHi.includes(searchQuery)
   );
   
+  const handleAISearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    // If it's already in the local filter, don't fetch from AI
+    if (filteredPrices.length > 0) return;
+
+    setIsSearching(true);
+    try {
+      const res = await fetch('/api/prices/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location, crop: searchQuery, language })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Add to the top of our state
+        setPricesState([data, ...pricesState]);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-5 animate-in fade-in duration-500">
       
@@ -34,23 +66,37 @@ export default function Prices() {
         </div>
       </div>
 
-      <div className="relative">
+      <form onSubmit={handleAISearch} className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search size={16} className="text-emerald-200" />
         </div>
         <input 
           type="text"
-          placeholder={language === 'en' ? 'Search crops...' : 'फसल खोजें...'}
-          className="w-full bg-emerald-600/90 text-white placeholder-emerald-200 border-2 border-emerald-400 rounded-tl-3xl rounded-br-3xl rounded-tr-sm rounded-bl-sm pl-10 pr-4 py-2.5 text-xs font-bold focus:outline-none focus:border-emerald-300 shadow-lg appearance-none leaf-trigger"
+          placeholder={language === 'en' ? 'Search or ask AI for a crop...' : 'फसल खोजें या AI से पूछें...'}
+          className="w-full bg-emerald-600/90 text-white placeholder-emerald-200 border-2 border-emerald-400 rounded-tl-3xl rounded-br-3xl rounded-tr-sm rounded-bl-sm pl-10 pr-16 py-2.5 text-xs font-bold focus:outline-none focus:border-emerald-300 shadow-lg appearance-none leaf-trigger"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-      </div>
+        <button 
+          type="submit" 
+          disabled={isSearching || filteredPrices.length > 0}
+          className="absolute inset-y-0 right-1 my-1 px-3 bg-amber-500 hover:bg-amber-600 disabled:bg-emerald-700/50 text-white text-[10px] font-black uppercase rounded-tl-xl rounded-br-xl transition-colors flex items-center shadow"
+        >
+          {isSearching ? '...' : 'AI'}
+        </button>
+      </form>
 
       <div className="flex flex-col gap-3">
         {filteredPrices.length === 0 ? (
-          <div className="sky-glass-card p-6 text-center text-slate-500 font-bold">
-             {language === 'en' ? 'No crops found.' : 'कोई फसल नहीं मिली।'}
+          <div className="sky-glass-card p-6 text-center text-slate-500 font-bold flex flex-col items-center justify-center">
+             {isSearching ? (
+               <>
+                 <Loader2 className="animate-spin text-amber-500 mb-2" size={24} />
+                 {language === 'en' ? 'AI is estimating price...' : 'AI मूल्य का अनुमान लगा रहा है...'}
+               </>
+             ) : (
+               language === 'en' ? 'Not found locally. Click "AI" to estimate.' : 'स्थानीय रूप से नहीं मिला। अनुमान के लिए "AI" पर क्लिक करें।'
+             )}
           </div>
         ) : (
           filteredPrices.map(crop => (

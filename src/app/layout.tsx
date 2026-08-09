@@ -6,6 +6,7 @@ import { TopBar } from "@/components/TopBar";
 import { Navigation } from "@/components/Navigation";
 import { SkyCanvas } from "@/components/SkyCanvas";
 import { LeafDropper } from "@/components/LeafDropper";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
         <SkyCanvas />
         <AppProvider>
           <LeafDropper />
+          <BrandLogo />
           <div className="relative z-10 flex flex-col min-h-screen">
             <TopBar />
             <main className="flex-1 max-w-md mx-auto w-full p-4 pb-24">
