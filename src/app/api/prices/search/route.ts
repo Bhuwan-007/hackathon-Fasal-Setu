@@ -50,6 +50,7 @@ Do not return anything except the JSON. Ensure numbers are realistic based on st
       },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
+        temperature: 0.2,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" }
       })
