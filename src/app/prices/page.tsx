@@ -7,13 +7,24 @@ import clsx from "clsx";
 
 export default function Prices() {
   const { language, location } = useAppContext();
-  const initialPrices = cropPrices[location] || [];
+  const initialPrices = cropPrices[location] || cropPrices['Default'] || [];
   const [pricesState, setPricesState] = useState<any[]>(initialPrices);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   
   useEffect(() => {
-    setPricesState(cropPrices[location] || []);
+    const base = cropPrices[location] || cropPrices['Default'] || [];
+    const cached = localStorage.getItem(`aiCrops_${location}`);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setPricesState([...parsed, ...base]);
+      } catch (e) {
+        setPricesState(base);
+      }
+    } else {
+      setPricesState(base);
+    }
   }, [location]);
   
   const filteredPrices = pricesState.filter(p => 
@@ -21,11 +32,8 @@ export default function Prices() {
     p.nameHi.includes(searchQuery)
   );
   
-  const handleAISearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    
-    // If it's already in the local filter, don't fetch from AI
+  const handleAISearch = async (queryToSearch: string = searchQuery) => {
+    if (!queryToSearch.trim()) return;
     if (filteredPrices.length > 0) return;
 
     setIsSearching(true);
@@ -33,18 +41,37 @@ export default function Prices() {
       const res = await fetch('/api/prices/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location, crop: searchQuery, language })
+        body: JSON.stringify({ location, crop: queryToSearch, language })
       });
       if (res.ok) {
         const data = await res.json();
-        // Add to the top of our state
-        setPricesState([data, ...pricesState]);
+        const newState = [data, ...pricesState];
+        setPricesState(newState);
+        
+        // Save to localStorage
+        const cached = localStorage.getItem(`aiCrops_${location}`);
+        const parsedCached = cached ? JSON.parse(cached) : [];
+        localStorage.setItem(`aiCrops_${location}`, JSON.stringify([data, ...parsedCached]));
       }
     } catch (e) {
       console.error(e);
     } finally {
       setIsSearching(false);
     }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.trim() && filteredPrices.length === 0 && !isSearching) {
+        handleAISearch(searchQuery);
+      }
+    }, 1200);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, filteredPrices.length, isSearching]);
+
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleAISearch(searchQuery);
   };
 
   return (
@@ -66,24 +93,17 @@ export default function Prices() {
         </div>
       </div>
 
-      <form onSubmit={handleAISearch} className="relative">
+      <form onSubmit={onFormSubmit} className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search size={16} className="text-emerald-200" />
         </div>
         <input 
           type="text"
-          placeholder={language === 'en' ? 'Search or ask AI for a crop...' : 'फसल खोजें या AI से पूछें...'}
-          className="w-full bg-emerald-600/90 text-white placeholder-emerald-200 border-2 border-emerald-400 rounded-tl-3xl rounded-br-3xl rounded-tr-sm rounded-bl-sm pl-10 pr-16 py-2.5 text-xs font-bold focus:outline-none focus:border-emerald-300 shadow-lg appearance-none leaf-trigger"
+          placeholder={language === 'en' ? 'Search crop...' : 'फसल खोजें...'}
+          className="w-full bg-emerald-600/90 text-white placeholder-emerald-200 border-2 border-emerald-400 rounded-tl-3xl rounded-br-3xl rounded-tr-sm rounded-bl-sm pl-10 pr-4 py-2.5 text-xs font-bold focus:outline-none focus:border-emerald-300 shadow-lg appearance-none leaf-trigger"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button 
-          type="submit" 
-          disabled={isSearching || filteredPrices.length > 0}
-          className="absolute inset-y-0 right-1 my-1 px-3 bg-amber-500 hover:bg-amber-600 disabled:bg-emerald-700/50 text-white text-[10px] font-black uppercase rounded-tl-xl rounded-br-xl transition-colors flex items-center shadow"
-        >
-          {isSearching ? '...' : 'AI'}
-        </button>
       </form>
 
       <div className="flex flex-col gap-3">
@@ -95,7 +115,7 @@ export default function Prices() {
                  {language === 'en' ? 'AI is estimating price...' : 'AI मूल्य का अनुमान लगा रहा है...'}
                </>
              ) : (
-               language === 'en' ? 'Not found locally. Click "AI" to estimate.' : 'स्थानीय रूप से नहीं मिला। अनुमान के लिए "AI" पर क्लिक करें।'
+               language === 'en' ? 'Crop not found.' : 'फसल नहीं मिली।'
              )}
           </div>
         ) : (

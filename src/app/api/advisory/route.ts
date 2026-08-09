@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     }
 
     const weather = await fetchWeather(location as any);
-    const prices = cropPrices[location] || [];
+    const prices = cropPrices[location] || cropPrices['Default'] || [];
     
     let cropDetails = 'None selected';
     if (crop) {

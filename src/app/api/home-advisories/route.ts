@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     }
 
     const weather = await fetchWeather(location);
-    const prices = cropPrices[location] || [];
+    const prices = cropPrices[location] || cropPrices['Default'] || [];
 
     const prompt = `
 You are an expert agricultural advisor for Indian farmers. 
