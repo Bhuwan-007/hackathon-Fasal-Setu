@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #030712;
+  --font-sans: var(--font-plus-jakarta-sans);
+  --font-devanagari: var(--font-noto-sans-devanagari);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-brand-bg);
+    color: #1e293b;
+    font-family: var(--font-sans), var(--font-devanagari), sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  .sky-glass-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15), 0 0 1px 1px rgba(255, 255, 255, 0.8);
+    border-radius: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sky-glass-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2), 0 0 1px 1px rgba(255, 255, 255, 0.9);
+  }
+
+  .sky-glass-dark {
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #f8fafc;
+    border-radius: 1.5rem;
+  }
+}
