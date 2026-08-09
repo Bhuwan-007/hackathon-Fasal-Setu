@@ -13,6 +13,17 @@ Indian agriculture is highly susceptible to climate volatility, leaving millions
 
 ---
 
+## 📱 Application Features
+
+Fasal-Setu is divided into four primary modules designed for rapid, on-the-field access:
+
+* 🏠 **Dashboard (Home):** The central hub providing a high-level view of the farm's status. It features an AI-generated daily operational tip (e.g., irrigation alerts, pest warnings), a localized market overview highlighting top crops, and an instant English/Hindi translation toggle that persists across the entire app. It aggressively caches data to ensure zero loading screens on revisit.
+* 🤖 **AI Advisory (Copilot):** A dedicated AI traceability copilot powered by Meta's Llama 3.1. Farmers can ask open-ended questions about what to plant next, or select a specific crop to generate a precise "Quick Sell Target." The AI correlates recent market data to advise the farmer on the exact minimum price they should demand at the Mandi, preventing exploitation.
+* 🌤️ **Weather & Climate:** Integrates the Open-Meteo API to pull live, hyper-local 14-day weather forecasts based on the selected city's latitude and longitude. The AI engine then analyzes this exact 14-day climate trajectory to automatically recommend which specific crops will thrive under these upcoming weather conditions.
+* 📈 **Mandi Prices:** A dynamic, live-updating directory of local crop selling prices per quintal. It includes a smart debounced search function that queries the AI backend to estimate current market prices for *any* crop typed by the user, gracefully falling back to a robust default dataset if the network is unavailable.
+
+---
+
 ## System Architecture
 
 The application follows a resilient **AI-First, Mock-Fallback** architectural pattern designed for maximum uptime and speed.
